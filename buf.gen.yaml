@@ -1,0 +1,6 @@
+version: v1
+plugins:
+  - remote: buf.build/protocolbuffers/plugins/cpp:v3.20.0-1
+    out: gen/proto/cpp
+  - remote: buf.build/protocolbuffers/plugins/python:v3.20.0-1
+    out: gen/proto/python

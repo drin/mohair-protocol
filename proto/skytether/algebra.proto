@@ -1,0 +1,45 @@
+// SPDX-License-Identifier: Apache-2.0
+syntax = "proto3";
+
+package skytether;
+
+import "google/protobuf/any.proto";
+import "substrait/extensions/extensions.proto";
+import "substrait/type.proto";
+
+/**
+ ** A SkyRel message represents a logical relation (table) in SkyTether. It can be used as
+ ** a Substrait ExtensionTable. A request for a SkyRel always specifies a domain and a
+ ** partition.
+ **
+ ** Hints and statistics provided with SkyRel messages can be handled at any intermediate
+ ** CSE and potentially propagated to a leaf-level CSE (located on a CSD).
+ **/
+message SkyRel {
+  string domain    = 1;
+  string partition = 2;
+
+  repeated uint32 slices = 3;
+}
+
+
+/**
+ ** A KineticRel message represents a physical relation (table) stored on a Kinetic drive.
+ ** It can be used as a Substrait ExtensionTable. A request for a KineticRel always specifies
+ ** a domain in case the association of key values needs to be remade or recovered. The
+ ** partition is always included, and an array of slice indices is optional.
+ **
+ ** When querying data, omitting `slices` should represent a full scan. Specifying slices
+ ** should represent a scan of specific key values (or "data pages"). Although indices are
+ ** physically represented as a `size_t`, a uint32 should satisfy practical naming
+ ** requirements. Specifically, 24 bits can enumerate all blocks on a 16 TiB medium,
+ ** assuming 1 MiB blocks:
+ **
+ **     (2 ** 44) - (2 ** 20) = (2 ** 24)
+ **/
+message KineticRel {
+  string domain    = 1;
+  string partition = 2;
+
+  repeated uint32 slices = 3;
+}

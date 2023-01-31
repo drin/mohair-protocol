@@ -1,0 +1,13 @@
+version: v1
+name: buf.build/drin/mohair
+deps:
+  - buf.build/substrait/substrait
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
+  ignore_only:
+    PACKAGE_VERSION_SUFFIX:
+      - mohair
