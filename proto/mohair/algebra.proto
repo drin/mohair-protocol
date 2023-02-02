@@ -1,11 +1,22 @@
 // SPDX-License-Identifier: Apache-2.0
 syntax = "proto3";
 
-package skytether;
+package mohair;
 
 import "google/protobuf/any.proto";
 import "substrait/extensions/extensions.proto";
 import "substrait/type.proto";
+
+
+/**
+ ** ExecutionStats represents metadata that mohair wants to attach to substrait plans to
+ ** facilitate "pushback" from downstream CSEs and planning statistics at upstream CSEs to
+ ** know when a sub-plan should be pushed down.
+ **/
+message ExecutionStats {
+  bool executed = 1;
+  double runtime = 2;
+}
 
 /**
  ** A SkyRel message represents a logical relation (table) in SkyTether. It can be used as
@@ -20,6 +31,8 @@ message SkyRel {
   string partition = 2;
 
   repeated uint32 slices = 3;
+
+  ExecutionStats execstats = 4;
 }
 
 
@@ -42,4 +55,21 @@ message KineticRel {
   string partition = 2;
 
   repeated uint32 slices = 3;
+
+  ExecutionStats execstats = 4;
+}
+
+
+/**
+ ** QueryRel represents a placeholder in the substrait plan for a sub-query that could not
+ ** be parsed by an upstream planner. This message holds the original query in some
+ ** serialized form and allows the sub-query to be propagated to a planner with the
+ ** appropriate knowledge.
+ **
+ ** NOTE: it is not necessary to attach ExecutionStats to a QueryRel, because when it is
+ ** eventually planned it should be _replaced_ with a different message. A QueryRel is
+ ** _always_ not executed (executed = false).
+ **/
+message QueryRel {
+  bytes query = 1;
 }
