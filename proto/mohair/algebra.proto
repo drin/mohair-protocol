@@ -4,8 +4,6 @@ syntax = "proto3";
 package mohair;
 
 import "google/protobuf/any.proto";
-import "substrait/extensions/extensions.proto";
-import "substrait/type.proto";
 
 
 /**
