@@ -12,8 +12,8 @@ import "google/protobuf/any.proto";
  ** know when a sub-plan should be pushed down.
  **/
 message ExecutionStats {
-  bool executed = 1;
-  double runtime = 2;
+  bool   executed = 1;
+  double runtime  = 2;
 }
 
 /**
