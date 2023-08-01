@@ -4,34 +4,35 @@ syntax = "proto3";
 package mohair;
 
 import "google/protobuf/any.proto";
+import "substrait/algebra.proto";
 
 
-/**
- ** ExecutionStats represents metadata that mohair wants to attach to substrait plans to
- ** facilitate "pushback" from downstream CSEs and planning statistics at upstream CSEs to
- ** know when a sub-plan should be pushed down.
- **/
+/*
+ * ExecutionStats represents metadata that mohair wants to attach to substrait plans to
+ * facilitate "pushback" from downstream CSEs and planning statistics at upstream CSEs to
+ * know when a sub-plan should be pushed down.
+ */
 message ExecutionStats {
   bool   executed = 1;
   double runtime  = 2;
 }
 
-/**
- ** A SkyRel message represents a logical relation (table) in SkyTether. It can be used as
- ** a Substrait ExtensionTable. A request for a SkyRel always specifies a domain and a
- ** partition.
- **
- ** When querying data, omitting `slices` should represent a full scan. Specifying slices
- ** should represent a scan of specific key values (or "data pages"). Although indices are
- ** physically represented as a `size_t`, a uint32 should satisfy practical naming
- ** requirements. Specifically, 24 bits can enumerate all blocks on a 16 TiB medium,
- ** assuming 1 MiB blocks:
- **
- **     (2 ** 44) - (2 ** 20) = (2 ** 24)
- **
- ** Hints and statistics provided with SkyRel messages can be handled at any intermediate
- ** CSE and potentially propagated to a leaf-level CSE (located on a CSD).
- **/
+/*
+ * A SkyRel message represents a logical relation (table) in SkyTether. It can be used as
+ * a Substrait ExtensionTable. A request for a SkyRel always specifies a domain and a
+ * partition.
+ *
+ * When querying data, omitting `slices` should represent a full scan. Specifying slices
+ * should represent a scan of specific key values (or "data pages"). Although indices are
+ * physically represented as a `size_t`, a uint32 should satisfy practical naming
+ * requirements. Specifically, 24 bits can enumerate all blocks on a 16 TiB medium,
+ * assuming 1 MiB blocks:
+ *
+ *     (2 ** 44) - (2 ** 20) = (2 ** 24)
+ *
+ * Hints and statistics provided with SkyRel messages can be handled at any intermediate
+ * CSE and potentially propagated to a leaf-level CSE (located on a CSD).
+ */
 message SkyRel {
   string domain    = 1;
   string partition = 2;
@@ -42,16 +43,26 @@ message SkyRel {
 }
 
 
-/**
- ** QueryRel represents a placeholder in the substrait plan for a sub-query that could not
- ** be parsed by an upstream planner. This message holds the original query in some
- ** serialized form and allows the sub-query to be propagated to a planner with the
- ** appropriate knowledge.
- **
- ** NOTE: it is not necessary to attach ExecutionStats to a QueryRel, because when it is
- ** eventually planned it should be _replaced_ with a different message. A QueryRel is
- ** _always_ not executed (executed = false).
- **/
+/*
+ * QueryRel represents a placeholder in the substrait plan for a sub-query that could not
+ * be parsed by an upstream planner. This message holds the original query in some
+ * serialized form and allows the sub-query to be propagated to a planner with the
+ * appropriate knowledge.
+ *
+ * NOTE: it is not necessary to attach ExecutionStats to a QueryRel, because when it is
+ * eventually planned it should be _replaced_ with a different message. A QueryRel is
+ * _always_ not executed (executed = false).
+ */
 message QueryRel {
   bytes query = 1;
+}
+
+/*
+ * PlanAnchor represents the leaf relation of a super plan. Having this message implies
+ * that the query plan in `Plan` is a sub plan and that we should include the PlanAnchor
+ * in a pushback plan. We don't need to do anything with this message except propagate it
+ * to a response message.
+ */
+message PlanAnchor {
+  substrait.Rel anchor_rel = 1;
 }
