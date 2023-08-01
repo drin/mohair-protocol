@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/drin/mohair
+name: buf.build/octalene/mohair
 deps:
   - buf.build/substrait/substrait
 breaking:

@@ -4,4 +4,5 @@ deps:
   - remote: buf.build
     owner: substrait
     repository: substrait
-    commit: a52aadfe0c144d09a52852ad50829e04
+    commit: 95df3436d83240bc8ecdd65d9a9e6832
+    digest: shake256:ac4b6a5182f52bf22a45b839db5c05202b17fa48c3003ba7f4f4a685a9030138c6ab6ab71a8a6843accf8c9ace1de9c0399e1e20223a77a5d5160af0243431a8
