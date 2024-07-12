@@ -1,0 +1,80 @@
+// SPDX-License-Identifier: Apache-2.0
+syntax = "proto3";
+
+package mohair;
+
+import "google/protobuf/any.proto";
+
+
+/** Coarse-grain categories of computational storage devices.
+ ** This defines the most resource-rich first (server), then the most
+ ** resource-constrained (drive), then other categories in increasing
+ ** order of available resources.
+ **/
+enum DeviceClass {
+  DEVICE_CLASS_SERVER    = 0;
+  DEVICE_CLASS_DRIVE     = 1;
+  DEVICE_CLASS_SOC       = 2;
+  DEVICE_CLASS_ARRAY     = 3;
+  DEVICE_CLASS_DPU       = 4;
+}
+
+
+/** 
+ ** Coarse-grain categories of memory subsystem types.
+ ** DDR is for typical SDRAM, whereas GDDR is for graphics SDRAM (SGRAM?). NVM is
+ ** non-volatile memory and CAM is content-addressable memory (or associative memory).
+ **/
+enum MemoryType {
+  MEMORY_TYPE_DDR  = 0;
+  MEMORY_TYPE_GDDR = 1;
+  MEMORY_TYPE_NVM  = 2;
+  MEMORY_TYPE_CXL  = 3;
+  MEMORY_TYPE_CAM  = 4;
+}
+
+
+/**
+ ** Available compute resources of a device.
+ ** This message is decoupled from MohairService so that it can be independently updated.
+ ** Simplest attributes of interest are the number of cores an their frequencies. If a
+ ** single frequency is listed, it is assumed all cores operate at that frequency.
+ **/
+message ComputeResources {
+  uint32         count_cores = 1;
+  repeated float core_freqs  = 2;
+}
+
+
+/**
+ ** Available memory resources of a device.
+ ** This message is decoupled from MohairService and ComputeResources so that it can be
+ ** independently updated.
+ ** Simpest attributes of interest is the size of memory. It is specified in mebibytes to
+ ** be precise and efficiently used, but also because some devices may have a small pool
+ ** of available memory (less than 1 GiB) or a large pool (some TiBs). It is expected that
+ ** tens of GiBs will be most common, but larger pools are more likely for remote cloud
+ ** systems.
+ **/
+message MemoryResources {
+  uint32              count_mebibytes = 1;
+  optional MemoryType memory_type     = 2;
+  optional uint32     count_channels  = 3;
+  optional uint32     memory_freq     = 4;
+}
+
+
+/**
+ ** A service that participates in the computational storage system.
+ ** It can receive queries for cooperative decomposition and it will propagate queries
+ ** with downstream services. This also includes other attributes of the service or the
+ ** platform on which it's running.
+ **/
+message MohairService {
+  string                    service_location    = 1; // Arrow Flight location URI
+  DeviceClass               service_platform    = 2;
+  repeated MohairService    downstream_services = 3;
+  optional MemoryResources  service_mem         = 4;
+  repeated ComputeResources service_compute     = 5;
+}
+
