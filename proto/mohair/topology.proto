@@ -71,10 +71,11 @@ message MemoryResources {
  ** platform on which it's running.
  **/
 message ServiceConfig {
-  string                    service_location    = 1; // Arrow Flight location URI
-  DeviceClass               platform_class      = 2;
-  repeated ServiceConfig    downstream_services = 3;
-  optional MemoryResources  service_mem         = 4;
-  repeated ComputeResources service_compute     = 5;
+  bool                      is_active           = 1;
+  string                    service_location    = 2; // Arrow Flight location URI
+  DeviceClass               platform_class      = 3;
+  repeated ServiceConfig    downstream_services = 4;
+  optional MemoryResources  service_mem         = 5;
+  repeated ComputeResources service_compute     = 6;
 }
 
