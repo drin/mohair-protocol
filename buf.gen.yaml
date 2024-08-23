@@ -1,8 +1,6 @@
-version: v1
-managed:
-  enabled: true
+version: v2
 plugins:
-  - plugin: buf.build/protocolbuffers/cpp:v27.1
-    out: gen/proto/cpp
-  - plugin: buf.build/protocolbuffers/python:v27.1
-    out: gen/proto/python
+  - remote: buf.build/protocolbuffers/cpp:v27.3
+    out: gen/proto/cpp/mohair-substrait
+  - remote: buf.build/protocolbuffers/python:v27.3
+    out: gen/proto/python/mohair-substrait
