@@ -1,13 +1,15 @@
-version: v1
-name: buf.build/octalene/mohair
-deps:
-  - buf.build/octalene/substrait
-breaking:
-  use:
-    - FILE
+version: v2
+modules:
+  - path: .
+    name: buf.build/octalene/mohair
 lint:
   use:
-    - DEFAULT
+    - STANDARD
   ignore_only:
     PACKAGE_VERSION_SUFFIX:
       - mohair
+breaking:
+  use:
+    - FILE
+deps:
+  - buf.build/octalene/substrait
