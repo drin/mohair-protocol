@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 syntax = "proto3";
 
-package mohair;
+package skytether.mohair;
 
 import "google/protobuf/any.proto";
-import "substrait/algebra.proto";
+import "skytether/substrait/algebra.proto";
 
 
 /*
@@ -77,5 +77,5 @@ message QueryRel {
  * to a response message.
  */
 message PlanAnchor {
-  substrait.Rel anchor_rel = 1;
+  skytether.substrait.Rel anchor_rel = 1;
 }
