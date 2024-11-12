@@ -18,27 +18,33 @@ message ExecutionStats {
 }
 
 /*
- * SkyPartitionRel is a logical relation (table) consisting of many slices (physical
- * tables).
+ * SkyPartitionRel specifies a partition (logical or physical) that should be directly
+ * retrieved (bypass the catalog).
  */
 message SkyPartitionRel {
   string domain    = 1;
   string partition = 2;
 
+  repeated uint32 slices = 3;
+
   ExecutionStats execstats = 4;
 }
 
 /*
- * SkySliceRel is a physical relation (recordbatch or table) corresponding to the smallest
- * unit of object storage (named in the object storage system namespace).
+ * SkySliceRel specifies a slice (logical or physical) that should be directly retrieved
+ * (bypass the catalog) using the `slice_key`. A slice corresponds to the smallest unit of
+ * object storage (named in the object storage system namespace).
+ *
+ * A partition that is stored as a single slice can be represented by a SkySliceRel by
+ * setting the slice_key to the resolved name of the slice; this avoids the indirection
+ * that would be otherwise required (a meta slice and a data slice).
  */
 message SkySliceRel {
-  string domain    = 1;
-  string partition = 2;
-  uint32 slice     = 3;
-
   // The full key name of the slice; not just the index of the slice in the partition.
-  string slice_key = 4;
+  string slice_key = 1;
+  string domain    = 2;
+  string partition = 3;
+  uint32 slice     = 4;
 
   ExecutionStats execstats = 5;
 }
@@ -65,9 +71,7 @@ message SkyRel {
   string domain    = 1;
   string partition = 2;
 
-  repeated uint32 slices = 3;
-
-  ExecutionStats execstats = 4;
+  ExecutionStats execstats = 3;
 }
 
 /*
