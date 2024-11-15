@@ -18,6 +18,31 @@ message ExecutionStats {
 }
 
 /*
+ * SkyRel is a logical relation corresponding to a partition in a database catalog. This
+ * is useful for catalog systems that support extensions or custom storage interfaces
+ * where a catalog name is resolved to physical data. If naming a partition or slice
+ * directly in a query, it is better to be explicit with `SkyPartitionRel` and
+ * `SkySliceRel`. If a catalog lookup is expected, it may be useful to use `SkyRel`.
+ *
+ * SkyRel with no slices specified (slices().empty()) represents a full scan; otherwise,
+ * it is a partial scan of specific slices (or "data pages"). Although indices are
+ * physically represented as a `size_t`, a uint32 satisfies practical naming requirements.
+ * Specifically, 24 bits can enumerate all blocks on a 16 TiB medium, assuming 1 MiB
+ * blocks:
+ *
+ *     (2 ** 44) - (2 ** 20) = (2 ** 24)
+ *
+ * Hints and statistics provided with SkyRel messages can be handled at any intermediate
+ * CSE and potentially propagated to a leaf-level CSE (located on a CSD).
+ */
+message SkyRel {
+  string domain    = 1;
+  string partition = 2;
+
+  ExecutionStats execstats = 3;
+}
+
+/*
  * SkyPartitionRel specifies a partition (logical or physical) that should be directly
  * retrieved (bypass the catalog).
  */
@@ -47,31 +72,6 @@ message SkySliceRel {
   uint32 slice     = 4;
 
   ExecutionStats execstats = 5;
-}
-
-/*
- * SkyRel is a logical relation corresponding to a partition in a database catalog. This
- * is useful for catalog systems that support extensions or custom storage interfaces
- * where a catalog name is resolved to physical data. If naming a partition or slice
- * directly in a query, it is better to be explicit with `SkyPartitionRel` and
- * `SkySliceRel`. If a catalog lookup is expected, it may be useful to use `SkyRel`.
- *
- * SkyRel with no slices specified (slices().empty()) represents a full scan; otherwise,
- * it is a partial scan of specific slices (or "data pages"). Although indices are
- * physically represented as a `size_t`, a uint32 satisfies practical naming requirements.
- * Specifically, 24 bits can enumerate all blocks on a 16 TiB medium, assuming 1 MiB
- * blocks:
- *
- *     (2 ** 44) - (2 ** 20) = (2 ** 24)
- *
- * Hints and statistics provided with SkyRel messages can be handled at any intermediate
- * CSE and potentially propagated to a leaf-level CSE (located on a CSD).
- */
-message SkyRel {
-  string domain    = 1;
-  string partition = 2;
-
-  ExecutionStats execstats = 3;
 }
 
 /*
