@@ -103,11 +103,33 @@ message QueryRel {
 }
 
 /*
- * PlanAnchor represents the leaf relation of a super plan. Having this message implies
- * that the query plan in `Plan` is a sub plan and that we should include the PlanAnchor
- * in a pushback plan. We don't need to do anything with this message except propagate it
- * to a response message.
+ * A SuperPlan points to a PlanRel that will not be executed remotely but has a leaf
+ * relation for which at least 1 SubPlan is an input. For convenience, a SuperPlan message
+ * points to a PlanRel and identifies the leaf relation (merge relation) that has >= 1
+ * SubPlan as inputs.
+ *
+ * The SuperPlan message must not be dropped during plan transformations, since it is
+ * necessary to eventually flow data from the SubPlan back into the correct SuperPlan
+ * relation.
  */
-message PlanAnchor {
-  skytether.substrait.Rel anchor_rel = 1;
+message SuperPlan {
+  // Contextual information for the leaf Rel of the super plan
+  skytether.substrait.Rel merge_rel = 1;
+
+  // Reference to the leaf Rel of the super plan
+  uint32 mergerel_reference = 2;
+
+  // Reference to the PlanRel of the super plan
+  uint32 superplan_reference = 3;
+}
+
+/*
+ * A SubPlan points to a PlanRel that is eligible (or preferable) for remote execution.
+ */
+message SubPlan {
+  // Information of the root Rel of the sub plan
+  skytether.substrait.Rel split_rel = 1;
+
+  // Reference to the PlanRel of the sub plan
+  uint32 subplan_reference = 2;
 }
