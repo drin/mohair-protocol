@@ -1,0 +1,113 @@
+// SPDX-License-Identifier: Apache-2.0
+syntax = "proto3";
+
+package skytether.mohair;
+
+import "google/protobuf/any.proto";
+import "skytether/substrait/algebra.proto";
+
+
+/*
+ * ExecutionStats represents metadata that mohair wants to attach to substrait plans to
+ * facilitate "pushback" from downstream CSEs and planning statistics at upstream CSEs to
+ * know when a sub-plan should be pushed down.
+ */
+message ExecutionStats {
+  bool   executed = 1;
+  double runtime  = 2;
+}
+
+/*
+ * SkyRel is a logical relation corresponding to a partition in a database catalog. This
+ * is useful for catalog systems that support extensions or custom storage interfaces
+ * where a catalog name is resolved to physical data. If naming a partition or slice
+ * directly in a query, it is better to be explicit with `SkyPartitionRel` and
+ * `SkySliceRel`. If a catalog lookup is expected, it may be useful to use `SkyRel`.
+ *
+ * SkyRel with no slices specified (slices().empty()) represents a full scan; otherwise,
+ * it is a partial scan of specific slices (or "data pages"). Although indices are
+ * physically represented as a `size_t`, a uint32 satisfies practical naming requirements.
+ * Specifically, 24 bits can enumerate all blocks on a 16 TiB medium, assuming 1 MiB
+ * blocks:
+ *
+ *     (2 ** 44) - (2 ** 20) = (2 ** 24)
+ *
+ * Hints and statistics provided with SkyRel messages can be handled at any intermediate
+ * CSE and potentially propagated to a leaf-level CSE (located on a CSD).
+ */
+message SkyRel {
+  string domain    = 1;
+  string partition = 2;
+
+  ExecutionStats execstats = 3;
+}
+
+/*
+ * SkyPartitionRel specifies a partition (logical or physical) that should be directly
+ * retrieved (bypass the catalog).
+ */
+message SkyPartitionRel {
+  string domain    = 1;
+  string partition = 2;
+
+  repeated uint32 slices = 3;
+
+  ExecutionStats execstats = 4;
+}
+
+/*
+ * SkySliceRel specifies a slice (logical or physical) that should be directly retrieved
+ * (bypass the catalog) using the `slice_key`. A slice corresponds to the smallest unit of
+ * object storage (named in the object storage system namespace).
+ *
+ * A partition that is stored as a single slice can be represented by a SkySliceRel by
+ * setting the slice_key to the resolved name of the slice; this avoids the indirection
+ * that would be otherwise required (a meta slice and a data slice).
+ */
+message SkySliceRel {
+  // The full key name of the slice; not just the index of the slice in the partition.
+  string slice_key = 1;
+  string domain    = 2;
+  string partition = 3;
+  uint32 slice     = 4;
+
+  ExecutionStats execstats = 5;
+}
+
+/*
+ * A message representing an error state that should be communicated upstream or
+ * downstream.
+ */
+message ErrRel {
+  string  err_msg  = 1;
+  ErrType err_code = 2;
+
+  enum ErrType {
+    INVALID_MSG_TYPE = 0;
+  }
+}
+
+
+/*
+ * QueryRel represents a placeholder in the substrait plan for a sub-query that could not
+ * be parsed by an upstream planner. This message holds the original query in some
+ * serialized form and allows the sub-query to be propagated to a planner with the
+ * appropriate knowledge.
+ *
+ * NOTE: it is not necessary to attach ExecutionStats to a QueryRel, because when it is
+ * eventually planned it should be _replaced_ with a different message. A QueryRel is
+ * _always_ not executed (executed = false).
+ */
+message QueryRel {
+  bytes query = 1;
+}
+
+/*
+ * PlanAnchor represents the leaf relation of a super plan. Having this message implies
+ * that the query plan in `Plan` is a sub plan and that we should include the PlanAnchor
+ * in a pushback plan. We don't need to do anything with this message except propagate it
+ * to a response message.
+ */
+message PlanAnchor {
+  skytether.substrait.Rel anchor_rel = 1;
+}

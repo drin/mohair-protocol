@@ -1,0 +1,15 @@
+version: v2
+modules:
+  - path: proto
+    name: buf.build/octalene/mohair
+lint:
+  use:
+    - STANDARD
+  ignore_only:
+    PACKAGE_VERSION_SUFFIX:
+      - proto
+breaking:
+  use:
+    - FILE
+deps:
+  - buf.build/octalene/substrait
