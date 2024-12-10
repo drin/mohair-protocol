@@ -13,8 +13,7 @@ import "skytether/substrait/algebra.proto";
  * know when a sub-plan should be pushed down.
  */
 message ExecutionStats {
-  bool   executed = 1;
-  double runtime  = 2;
+  optional double runtime  = 1;
 }
 
 /*
