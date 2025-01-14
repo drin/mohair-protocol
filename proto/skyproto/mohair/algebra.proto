@@ -5,6 +5,7 @@ package skyproto.mohair;
 
 import "google/protobuf/any.proto";
 import "skyproto/substrait/algebra.proto";
+import "skyproto/substrait/type.proto";
 
 /*
  * [SkyRel]
@@ -111,8 +112,13 @@ message SkySliceRel {
 
 //! Materialized result set that needs to be requested from the service
 message SkyResultRel {
-  uint32 context_id = 1;
-  optional ExecutionStats execstats = 2;
+  uint32 context_id       = 1;
+  string service_location = 2;
+
+  skyproto.substrait.RelCommon   common = 3;
+  skyproto.substrait.NamedStruct schema = 4;
+
+  optional ExecutionStats execstats = 5;
 }
 
 //! Destination for the result set to be pushed into
