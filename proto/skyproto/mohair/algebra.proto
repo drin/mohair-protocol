@@ -112,7 +112,7 @@ message SkySliceRel {
 
 //! Materialized result set that needs to be requested from the service
 message SkyResultRel {
-  uint32 context_id       = 1;
+  string result_name      = 1;
   string service_location = 2;
 
   skyproto.substrait.RelCommon   common = 3;
@@ -123,6 +123,6 @@ message SkyResultRel {
 
 //! Destination for the result set to be pushed into
 message SkyLakeRel {
-  uint32 context_id = 1;
+  uint64   context_id = 1;
   optional ExecutionStats execstats = 2;
 }
