@@ -91,6 +91,8 @@ message ErrRel {
 message SkyRel {
   string domain    = 1;
   string partition = 2;
+
+  optional skyproto.substrait.NamedStruct schema = 3;
 }
 
 //! A logical or physical partition that is not managed by a database catalog.
@@ -98,7 +100,29 @@ message SkyPartitionRel {
   string domain    = 1;
   string partition = 2;
 
-  repeated uint32 slices = 3;
+  optional skyproto.substrait.NamedStruct schema = 3;
+
+  optional uint64 slice_width = 4;
+  optional uint64 slice_count = 5;
+  optional uint64 stripe_size = 6;
+
+  repeated SliceSelection slice_selection = 7;
+
+  message SliceSelection {
+    oneof sel_type {
+      SliceInterval interval = 1;
+      SliceList     list     = 2;
+    }
+
+    message SliceInterval {
+      uint64 start = 1;
+      uint64 end   = 2;
+    }
+
+    message SliceList {
+      repeated uint64 indices = 1;
+    }
+  }
 }
 
 //! A logical or physical slice that is not managed by a database catalog.
@@ -107,18 +131,24 @@ message SkySliceRel {
   string slice_key = 1;
   string domain    = 2;
   string partition = 3;
-  uint32 slice     = 4;
+
+  optional skyproto.substrait.NamedStruct schema = 4;
+
+  optional uint64 slice       = 5;
+  optional uint64 slice_width = 6;
+  optional uint64 stripe_size = 7;
 }
 
 //! Materialized result set that needs to be requested from the service
 message SkyResultRel {
-  string result_name      = 1;
-  string service_location = 2;
+  uint64 context_id       = 1;
+  string result_name      = 2;
+  string service_location = 3;
 
-  skyproto.substrait.RelCommon   common = 3;
-  skyproto.substrait.NamedStruct schema = 4;
+  skyproto.substrait.RelCommon   common = 4;
+  skyproto.substrait.NamedStruct schema = 5;
 
-  optional ExecutionStats execstats = 5;
+  optional ExecutionStats execstats = 6;
 }
 
 //! Destination for the result set to be pushed into
