@@ -35,6 +35,20 @@ enum MemoryType {
 
 
 /**
+ ** Strategy for cooperative decomposition used by a particular service.
+ ** For now, this is used to toggle between "no decomposition" (data passthrough) and the
+ ** default algorithm "wide join" (split at the highest join operator in the plan).
+ **/
+enum DecomposeAlg {
+  None             = 0; // Do not split plan (propagation only)
+  LongPipelineLeaf = 1; // Leaf pipeline breaker with longest pipeline
+  LongPipelineHead = 2; // Internal pipeline breaker with longest pipeline
+  TallJoinLeaf     = 3; // Leaf join operation with tallest plan height
+  WideJoinHead     = 4; // Internal join operation with largest plan width
+}
+
+
+/**
  ** Available compute resources of a device.
  ** This message is decoupled from MohairService so that it can be independently updated.
  ** Simplest attributes of interest are the number of cores an their frequencies. If a
@@ -74,8 +88,11 @@ message ServiceConfig {
   bool                      is_active           = 1;
   string                    service_location    = 2; // Arrow Flight location URI
   DeviceClass               platform_class      = 3;
+
   repeated ServiceConfig    downstream_services = 4;
   optional MemoryResources  service_mem         = 5;
   repeated ComputeResources service_compute     = 6;
+
+  optional DecomposeAlg     decompose_alg       = 7;
 }
 
