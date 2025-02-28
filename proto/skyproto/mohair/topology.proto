@@ -45,6 +45,7 @@ enum DecomposeAlg {
   LongPipelineHead = 2; // Internal pipeline breaker with longest pipeline
   TallJoinLeaf     = 3; // Leaf join operation with tallest plan height
   WideJoinHead     = 4; // Internal join operation with largest plan width
+  Eager            = 5; // Annotation to split eagerly
 }
 
 
