@@ -35,15 +35,6 @@ import "skyproto/substrait/type.proto";
  */
 
 
-// >> Utility types
-
-//! Metadata for mohair services to communicate platform information.
-//  This allows upstream services to adapt future splitting strategies for pushdown plans.
-message ExecutionStats {
-  optional double runtime  = 1;
-}
-
-
 // >> Types to support cooperative decomposition
 
 //! A reference to a relation in a SuperPlan where data should flow to.
@@ -141,18 +132,15 @@ message SkySliceRel {
 
 //! Materialized result set that needs to be requested from the service
 message SkyResultRel {
-  uint64 context_id       = 1;
-  string result_name      = 2;
-  string service_location = 3;
+  uint64 context_id  = 1;
+  string result_name = 2;
+  string location    = 3;
 
   skyproto.substrait.RelCommon   common = 4;
   skyproto.substrait.NamedStruct schema = 5;
-
-  optional ExecutionStats execstats = 6;
 }
 
 //! Destination for the result set to be pushed into
 message SkyLakeRel {
-  uint64   context_id = 1;
-  optional ExecutionStats execstats = 2;
+  uint64 context_id = 1;
 }
