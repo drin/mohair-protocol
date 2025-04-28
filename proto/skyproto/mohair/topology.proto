@@ -6,39 +6,54 @@ package skyproto.mohair;
 import "google/protobuf/any.proto";
 
 
-/** Coarse-grain categories of computational storage devices.
- ** This defines the most resource-rich first (server), then the most
- ** resource-constrained (drive), then other categories in increasing
- ** order of available resources.
- **/
-enum DeviceClass {
-  DEVICE_CLASS_SERVER    = 0;
-  DEVICE_CLASS_DRIVE     = 1;
-  DEVICE_CLASS_SOC       = 2;
-  DEVICE_CLASS_ARRAY     = 3;
-  DEVICE_CLASS_DPU       = 4;
+// ------------------------------
+// Message structures
+
+// >> Hardware resource descriptions
+
+//! Available compute resources of a "platform" a service is running on.
+message CpuSpec {
+  repeated float  core_freqs    = 1;
+  repeated uint32 cache_sizes   = 2;
+  optional uint32 count_threads = 3;
+
+  //! Coarse-grain categories of computational storage devices.
+  enum DeviceClass {
+    SERVER = 0;
+    DRIVE  = 1;
+    SOC    = 2;
+    ARRAY  = 3;
+    DPU    = 4;
+  }
+}
+
+//! Available memory resources of a "platform" a service is running on.
+message MemorySpec {
+  uint32              count_mebibytes = 1;
+  optional MemoryType memory_type     = 2;
+  optional uint32     memory_freq     = 3;
+  optional uint32     count_channels  = 4;
+
+  //! Coarse-grain categories of memory subsystem types.
+  enum MemoryType {
+    DDR  = 0;
+    GDDR = 1;
+    NVM  = 2;
+    CXL  = 3;
+    CAM  = 4;
+  }
+}
+
+//! A single message containing various information about the computing platform.
+message PlatformSpec {
+  repeated CpuSpec    cpu_info = 1;
+  repeated MemorySpec mem_info = 2;
 }
 
 
-/** 
- ** Coarse-grain categories of memory subsystem types.
- ** DDR is for typical SDRAM, whereas GDDR is for graphics SDRAM (SGRAM?). NVM is
- ** non-volatile memory and CAM is content-addressable memory (or associative memory).
- **/
-enum MemoryType {
-  MEMORY_TYPE_DDR  = 0;
-  MEMORY_TYPE_GDDR = 1;
-  MEMORY_TYPE_NVM  = 2;
-  MEMORY_TYPE_CXL  = 3;
-  MEMORY_TYPE_CAM  = 4;
-}
+// >> Cooperative decomposition configurations
 
-
-/**
- ** Strategy for cooperative decomposition used by a particular service.
- ** For now, this is used to toggle between "no decomposition" (data passthrough) and the
- ** default algorithm "wide join" (split at the highest join operator in the plan).
- **/
+//! Strategy for choosing a query split for decomposition.
 enum DecomposeAlg {
   None             = 0; // Do not split plan (propagation only)
   LongPipelineLeaf = 1; // Leaf pipeline breaker with longest pipeline
@@ -49,51 +64,16 @@ enum DecomposeAlg {
 }
 
 
-/**
- ** Available compute resources of a device.
- ** This message is decoupled from MohairService so that it can be independently updated.
- ** Simplest attributes of interest are the number of cores an their frequencies. If a
- ** single frequency is listed, it is assumed all cores operate at that frequency.
- **/
-message ComputeResources {
-  uint32         count_cores = 1;
-  repeated float core_freqs  = 2;
-}
+// >> Service configurations
 
-
-/**
- ** Available memory resources of a device.
- ** This message is decoupled from MohairService and ComputeResources so that it can be
- ** independently updated.
- ** Simpest attributes of interest is the size of memory. It is specified in mebibytes to
- ** be precise and efficiently used, but also because some devices may have a small pool
- ** of available memory (less than 1 GiB) or a large pool (some TiBs). It is expected that
- ** tens of GiBs will be most common, but larger pools are more likely for remote cloud
- ** systems.
- **/
-message MemoryResources {
-  uint32              count_mebibytes = 1;
-  optional MemoryType memory_type     = 2;
-  optional uint32     count_channels  = 3;
-  optional uint32     memory_freq     = 4;
-}
-
-
-/**
- ** A service that participates in the computational storage system.
- ** It can receive queries for cooperative decomposition and it will propagate queries
- ** with downstream services. This also includes other attributes of the service or the
- ** platform on which it's running.
- **/
+//! A service that participates in the computational storage system.
 message ServiceConfig {
-  bool                      is_active           = 1;
-  string                    service_location    = 2; // Arrow Flight location URI
-  DeviceClass               platform_class      = 3;
+  bool   is_active = 1;
+  string label     = 2;
+  string location  = 3;
 
-  repeated ServiceConfig    downstream_services = 4;
-  optional MemoryResources  service_mem         = 5;
-  repeated ComputeResources service_compute     = 6;
-
-  optional DecomposeAlg     decompose_alg       = 7;
+  optional DecomposeAlg  decompose_alg    = 4;
+  optional PlatformSpec  service_platform = 5;
+  repeated ServiceConfig downstream       = 6;
 }
 
